@@ -1,15 +1,35 @@
-"""Reusable helpers for talking to Claude from any lesson script.
+"""Shared helpers from the course, imported by every lesson.
 
-Usage:
-    from claude_chat import Conversation, create_client
-
-    conversation = Conversation(create_client(), system="You are a patient math tutor.")
-    print(conversation.ask("How do I solve 2x + 3 = 7?"))
+    from claude_chat import add_user_message, add_assistant_message, chat
 """
 
-# Principle: DRY
-# Why: every lesson imports these from one package instead of copy-pasting the same helpers into each main.py.
-from claude_chat.client import DEFAULT_MAX_TOKENS, DEFAULT_MODEL, create_client
-from claude_chat.conversation import Conversation
+from anthropic import Anthropic
+from dotenv import load_dotenv
 
-__all__ = ["Conversation", "create_client", "DEFAULT_MODEL", "DEFAULT_MAX_TOKENS"]
+load_dotenv()
+
+client = Anthropic()
+model = "claude-haiku-4-5"
+
+
+def add_user_message(messages, text):
+    messages.append({"role": "user", "content": text})
+
+
+def add_assistant_message(messages, text):
+    messages.append({"role": "assistant", "content": text})
+
+
+def chat(messages, system=None, temperature=1.0, stop_sequences=[]):
+    params = {
+        "model": model,
+        "max_tokens": 1000,
+        "messages": messages,
+        "temperature": temperature,
+        "stop_sequences": stop_sequences,
+    }
+    if system:
+        params["system"] = system
+
+    message = client.messages.create(**params)
+    return message.content[0].text
