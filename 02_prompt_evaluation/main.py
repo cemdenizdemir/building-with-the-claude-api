@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+from statistics import mean
 
 from claude_chat import add_assistant_message, add_user_message, chat
 
@@ -84,6 +85,10 @@ def run_eval(dataset):
     results = []
     for test_case in dataset:
         results.append(run_test_case(test_case))
+
+    average_score = mean([result["score"] for result in results])
+    print(f"Average score: {average_score}")
+
     return results
 
 
