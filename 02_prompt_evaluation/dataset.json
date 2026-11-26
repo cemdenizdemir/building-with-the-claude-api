@@ -1,11 +1,14 @@
 [
   {
-    "task": "Write a Python function that extracts the AWS region from an S3 bucket URL in the format 's3://bucket-name.region.amazonaws.com/key'. Return the region name."
+    "task": "Create a regex pattern to match a valid AWS S3 bucket name",
+    "format": "regex"
   },
   {
-    "task": "Create a JSON object that represents an AWS IAM policy allowing read-only access to a specific S3 bucket named 'my-data-bucket'."
+    "task": "Write a Python function to parse an AWS CloudFormation template and extract all resource logical IDs",
+    "format": "python"
   },
   {
-    "task": "Write a regex pattern that matches valid AWS IAM role ARNs in the format 'arn:aws:iam::123456789012:role/RoleName'."
+    "task": "Create a JSON object representing an AWS Lambda function configuration with environment variables and VPC settings",
+    "format": "json"
   }
 ]

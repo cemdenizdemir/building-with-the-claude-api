@@ -1,6 +1,8 @@
 """Lesson: prompt evaluation — run a prompt against a dataset and grade each output with Claude."""
 
+import ast
 import json
+import re
 from pathlib import Path
 from statistics import mean
 
@@ -17,7 +19,8 @@ Example output:
 ```json
 [
   {
-    "task": "Description of task"
+    "task": "Create a Python function to validate an AWS IAM username",
+    "format": "python"
   },
   ...additional
 ]
@@ -41,10 +44,15 @@ def run_prompt(test_case):
 Please solve the following task:
 
 {test_case["task"]}
+
+* Respond only with Python, JSON, or a plain Regex
+* Do not add any comments or commentary or explanation
 """
     messages = []
     add_user_message(messages, prompt)
-    return chat(messages)
+    add_assistant_message(messages, "```code")
+    output = chat(messages, stop_sequences=["```"])
+    return output
 
 
 def grade_by_model(test_case, output):
@@ -67,16 +75,52 @@ Provide your evaluation as a structured JSON object with:
     return json.loads(eval_text)
 
 
+def validate_json(text):
+    try:
+        json.loads(text.strip())
+        return 10
+    except json.JSONDecodeError:
+        return 0
+
+
+def validate_python(text):
+    try:
+        ast.parse(text.strip())
+        return 10
+    except SyntaxError:
+        return 0
+
+
+def validate_regex(text):
+    try:
+        re.compile(text.strip())
+        return 10
+    except re.error:
+        return 0
+
+
+def grade_syntax(output, test_case):
+    if test_case["format"] == "json":
+        return validate_json(output)
+    if test_case["format"] == "python":
+        return validate_python(output)
+    return validate_regex(output)
+
+
 def run_test_case(test_case):
     """Calls run_prompt, then grades the result"""
     output = run_prompt(test_case)
-    grade = grade_by_model(test_case, output)
+    model_grade = grade_by_model(test_case, output)
+    model_score = model_grade["score"]
+    syntax_score = grade_syntax(output, test_case)
+
+    score = (model_score + syntax_score) / 2
 
     return {
         "output": output,
         "test_case": test_case,
-        "score": grade["score"],
-        "reasoning": grade["reasoning"],
+        "score": score,
+        "reasoning": model_grade["reasoning"],
     }
 
 
